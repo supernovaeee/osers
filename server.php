@@ -12,11 +12,7 @@ class User
 }
 
 session_start();
-// $name = "";
-// $surname = "";
-// $email = "";
-// $phone = "";
-// $password = "";
+
 // $errors = array();
 // $search_by = "";
 
@@ -35,7 +31,7 @@ try {
 // Create database
 $sql = "CREATE DATABASE IF NOT EXISTS osers";
 try {
-    mysqli_query($conn, $sql); //pre PHP8.1 - if (mysqli_query($conn, $sql))
+    mysqli_query($conn, $sql);
 } catch (mysqli_sql_exception $e) {
     die("Error creating database: " . mysqli_error($conn));
 } // do we need this??
@@ -57,9 +53,14 @@ if (isset($_POST['login'])) {
     } else {
         // if the email and password match, successfully log in
         if ($row['email'] == $email && $row['password'] == $password) {
-            $_SESSION['username'] = $row['name'];
+            // Set session global variables to user's upon successful authentication
             $_SESSION['userID'] = $row['ID'];
-            $_SESSION['useremail'] = $row['email'];
+            $_SESSION['name'] = $row['name'];
+            $_SESSION['surname'] = $row['surname'];
+            $_SESSION['email'] = $row['email'];
+            $_SESSION['phone'] = $row['phone'];
+            $_SESSION['password'] = $row['password'];
+            $_SESSION['userType'] = $row['type'];
             echo "You are logged in";
             // header('location: index.php');
         } else {
