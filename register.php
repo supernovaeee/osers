@@ -34,7 +34,7 @@
                 </div>
                 <div class="wrap">
                     <label for="sID">Student / Staff ID</label>
-                    <input type="text" name="sid" id="sid" placeholder="Enter student or staff ID">
+                    <input type="text" name="sID" id="sID" placeholder="Enter student or staff ID">
                 </div>
                 <div class="wrap">
                     <label for="email">Email</label>

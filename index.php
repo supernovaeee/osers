@@ -11,6 +11,8 @@
 <body>
     <?php
     include('server.php');
+    // ini_set('display_errors', 1);
+    // error_reporting(E_ALL ^ E_NOTICE);
     ?>
     <div class="titleContainer">
         <h1>Subject Enrolment System</h1>
