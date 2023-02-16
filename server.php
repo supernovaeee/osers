@@ -1,67 +1,8 @@
 <?php
-
-class User
-{
-    public $sID;
-    public $name;
-    public $surname;
-    public $email;
-    public $phone;
-    public $password;
-    public $type;
-
-    function __construct($sID, $name, $surname, $phone, $email, $type, $password)
-    {
-        $this->sID = $sID;
-        $this->name = $name;
-        $this->surname = $surname;
-        $this->phone = $phone;
-        $this->email = $email;
-        $this->type = $type;
-        $this->password = $password;
-    }
-    function get_sID()
-    {
-        return $this->sID;
-    }
-    function get_name()
-    {
-        return $this->name;
-    }
-    function get_surname()
-    {
-        return $this->surname;
-    }
-    function get_phone()
-    {
-        return $this->phone;
-    }
-    function get_email()
-    {
-        return $this->email;
-    }
-    function get_type()
-    {
-        return $this->type;
-    }
-    function get_password()
-    {
-        return $this->password;
-    }
-}
-
 session_start();
-
-// if (!isset($_SESSION['fromRegistration'])) {
-//     $_SESSION['fromRegistration'] = 0;
-//     echo "Your session number:" . $_SESSION['fromRegistration'];
-// } else {
-//     echo "You are returning from registration";
-// }
-
-// $errors = array();
-// $search_by = "";
-
+session_unset();
+include 'class_Subject.php';
+include 'class_User.php';
 // Initialise and declare variables for MySQL connection
 $servername = "localhost";
 $username = "root";
@@ -74,7 +15,6 @@ try {
 } catch (mysqli_sql_exception $e) {
     die("Connection failed:" . mysqli_connect_errno() . "=" . mysqli_connect_error());
 }
-
 // // Create database
 // $sql = "CREATE DATABASE IF NOT EXISTS osers";
 // try {
@@ -109,12 +49,12 @@ if (isset($_POST['login'])) {
             $type = $row['type'];
             $password = $row['password'];
             $user = new User($sID, $name, $surname, $phone, $email, $type, $password);
-            $_SESSION['user'] = $user;
-            echo "You are logged in, ";
-            echo $_SESSION['user']->get_name();
-            echo "&nbsp;";
-            echo $_SESSION['user']->get_surname();
-            // header('location: index.php');
+            $_SESSION['user'] = serialize($user);
+            // echo "You are logged in, ";
+            // echo $_SESSION['user']->get_name();
+            // echo "&nbsp;";
+            // echo $_SESSION['user']->get_surname();
+            header('location: subjects.php');
         } else {
             // if password is wrong
             echo "Wrong username/password combination";
@@ -132,8 +72,6 @@ if (isset($_POST['submit'])) {
     $type = $_POST['type'];
     $password = $_POST['password'];
     $password2 = $_POST['password2'];
-
-
     // To check if the email is already registered in the system
     $query = "SELECT * from `osers`.`user` WHERE `email` = '$email' or `sID` = '$sID'";
     $result = mysqli_query($conn, $query);
