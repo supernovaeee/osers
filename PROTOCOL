@@ -1,0 +1,7 @@
+Principles that I learned while working on this project:
+
+- Always check your code first: run through the logic, verify syntaxes' accuracy before running the code (save you much time, time is money!)
+- Pay attention to the variable name (careful with naming convention and possible wrong pointer)
+- Pay attention to which database that you queried vs what are you expecting
+- Understand variable type when you use it! Also save you much time and effort.
+- Think modular design!

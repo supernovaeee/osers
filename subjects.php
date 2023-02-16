@@ -114,9 +114,6 @@ if (isset($_POST['addSubject'])) {
                 echo "Fail to insert subject";
             }
         }
-
-
-
     }
 
 
