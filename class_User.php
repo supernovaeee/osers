@@ -4,17 +4,15 @@ class User
     public $ID;
     public $sID;
     public $name;
-    public $surname;
     public $email;
     public $phone;
     public $password;
     public $type;
 
-    function __construct($sID, $name, $surname, $phone, $email, $type, $password)
+    function __construct($sID, $name, $phone, $email, $type, $password)
     {
         $this->sID = $sID;
         $this->name = $name;
-        $this->surname = $surname;
         $this->phone = $phone;
         $this->email = $email;
         $this->type = $type;
@@ -39,10 +37,6 @@ class User
     function set_name($name)
     {
         $this->name = $name;
-    }
-    function get_surname()
-    {
-        return $this->surname;
     }
     function get_phone()
     {

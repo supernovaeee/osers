@@ -43,17 +43,15 @@ if (isset($_POST['login'])) {
             // Store user's information to session variable upon successful authentication
             $sID = $row['sID'];
             $name = $row['name'];
-            $surname = $row['surname'];
             $phone = $row['phone'];
             $email = $row['email'];
             $type = $row['type'];
             $password = $row['password'];
-            $user = new User($sID, $name, $surname, $phone, $email, $type, $password);
+            $user = new User($sID, $name, $phone, $email, $type, $password);
             $_SESSION['user'] = serialize($user);
             // echo "You are logged in, ";
             // echo $_SESSION['user']->get_name();
             // echo "&nbsp;";
-            // echo $_SESSION['user']->get_surname();
             header('location: subjects.php');
         } else {
             // if password is wrong
@@ -66,7 +64,6 @@ if (isset($_POST['login'])) {
 if (isset($_POST['submit'])) {
     $sID = $_POST['sID'];
     $name = $_POST['name'];
-    $surname = $_POST['surname'];
     $phone = $_POST['phone'];
     $email = $_POST['email'];
     $type = $_POST['type'];
@@ -97,7 +94,7 @@ if (isset($_POST['submit'])) {
         } else {
             // echo "Type is:" . $type . "Length of ID:" . strlen($sID);
             // SQL suery to insert the registration data variables into the database
-            $query = "INSERT INTO `user`(`sID`, `name`, `surname`, `phone`, `email`, `type`, `password`) VALUES('$sID', '$name', '$surname', '$phone', '$email', '$type', '$password')";
+            $query = "INSERT INTO `user`(`sID`, `name`, `phone`, `email`, `type`, `password`) VALUES('$sID', '$name', '$phone', '$email', '$type', '$password')";
             try {
                 mysqli_query($conn, $query);
                 echo "You have registered.";

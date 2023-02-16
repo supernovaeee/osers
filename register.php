@@ -29,10 +29,6 @@
                     <input type="text" name="name" id="name" placeholder="Enter name">
                 </div>
                 <div class="wrap">
-                    <label for="surname">Surname</label>
-                    <input type="text" name="surname" id="surname" placeholder="Enter surname">
-                </div>
-                <div class="wrap">
                     <label for="sID">Student / Staff ID</label>
                     <input type="text" name="sID" id="sID" placeholder="Enter student or staff ID">
                 </div>
