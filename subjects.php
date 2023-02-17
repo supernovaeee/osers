@@ -37,7 +37,11 @@ echo "<br><br>";
 
 if ($user->get_type() == 'admin') { // For admin user -> display option to add subject
     echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'>
-    <button type='prompt' name='prompt' value='Prompt'>Add Subject</button>
+    <button type='prompt' name='prompt' value='Prompt'>Add Subject</button><br><br>
+    <span>Sort subjects:</span><br><br>
+    <button type='active' name='active' value='active'>Active</button>
+    <button type='inactive' name='inactive' value='inactive'>Inactive</button>
+    <button type='removed' name='removed' value='removed'>Removed</button>
 </div></form>";
     echo "<br>";
 }
@@ -46,23 +50,23 @@ if (isset($_POST['prompt'])) {
     echo "<form action='subjects.php' method='POST'>
     <div class='wrap'>
         <label for='name'>Subject Name</label>
-        <input type='text' name='name' id='name' placeholder='Enter subject name (e.g. Web Server Programming)'>
+        <input type='text' name='name' id='name' placeholder='Enter subject name (e.g. Web Server Programming)' required>
     </div>
     <div class='wrap'>
         <label for='code'>Subject Code</label>
-        <input type='text' name='code' id='code' placeholder='Enter subject code (e.g. ISIT307)'>
+        <input type='text' name='code' id='code' placeholder='Enter subject code (e.g. ISIT307)' required>
     </div>
     <div class='wrap'>
         <label for='lecturer'>Lecturer Name</label>
-        <input type='text' name='lecturer' id='lecturer' placeholder='Enter the lecturer's name for this subject (e.g. John Doe)'>
+        <input type='text' name='lecturer' id='lecturer' placeholder='Enter the lecturer's name for this subject (e.g. John Doe)' required>
     </div>
     <div class='wrap'>
     <label for='venue'>Lecture Venue</label>
-    <input type='text' name='venue' id='venue' placeholder='Enter the venue's name for this subject (e.g. A.3.03)'>
+    <input type='text' name='venue' id='venue' placeholder='Enter the venue's name for this subject (e.g. A.3.03)' required>
 </div>
     <div class='wrap'>
         <label for='type'>Status</label>
-        <select name='type' id='type'>
+        <select name='type' id='type' required>
             <option value='active'>Active</option>
             <option value='inactive'>Inactive</option>
         </select>
@@ -121,8 +125,14 @@ if (isset($_POST['addSubject'])) {
 }
 // To display subject list
 if ($user->get_type() == 'admin') { // For admin user -> display all subjects
-    $query = "SELECT * from `osers`.`subject`";
-    displaySubject($conn, $query);
+    if (isset($_POST['inactive'])) {
+        displaybyType($conn, 'inactive');
+    } else if (isset($_POST['removed'])) {
+        displaybyType($conn, 'removed');
+    } else {
+        displaybyType($conn, 'active');
+    }
+
 } else {
     $sID = $user->get_sID(); // For non-admin user -> display the subjects they are enrolled in / assigned to
     // echo $sID;
@@ -143,6 +153,13 @@ if ($user->get_type() == 'admin') { // For admin user -> display all subjects
     }
 
 
+}
+
+function displaybyType($conn, $type)
+{
+    $query = "SELECT * from `osers`.`subject` WHERE `type` = '$type'";
+    echo "<h2>" . $type . " subjects</h2>";
+    displaySubject($conn, $query);
 }
 function displaySubject($conn, $query)
 {
