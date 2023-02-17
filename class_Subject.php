@@ -35,5 +35,9 @@ class Subject
     {
         return $this->type;
     }
+    public function display()
+    {
+        echo $this->code . ' (' . $this->name . ')' . '<br>Lecturer: ' . $this->lecturer . '<br>Venue: ' . $this->venue . '<br>Status: ' . $this->type . '<br>' . '<br>';
+    }
 }
 ?>
