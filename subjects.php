@@ -24,6 +24,7 @@ $dbname = "osers";
 // } catch (mysqli_sql_exception $e) {
 //     die("Connection failed:" . mysqli_connect_errno() . "=" . mysqli_connect_error());
 // }
+
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     exit('Error connecting to database'); //Should be a message a typical user could understand in production
@@ -149,8 +150,44 @@ if (isset($_POST['addSubject'])) {
         }
     }
 }
+// Save subjectCode from hidden value in HTML element to global session variable, to be used in the function to change the status of subject
+if (isset($_POST['subjectCode'])) {
+    $_SESSION['subjecttoChange'] = $_POST['subjectCode'];
+}
+// To change subject status (type) when user prompts: remove/deactivate,activate. Call changeStatus() function.
+if (isset($_POST['remove'])) {
+    changeStatus('remove', 'removed');
+}
+if (isset($_POST['deactivate'])) {
+    changeStatus('deactivate', 'inactive');
+}
+if (isset($_POST['activate'])) {
+    changeStatus('activate', 'active');
+}
+// If user press yes confirming their choice, call changeSubject() function with the GET request result for type change
+if (isset($_POST['yesChange'])) {
+    $subjectCode = $_SESSION['subjecttoChange'];
+    changeSubject($conn, $subjectCode, $_GET['typeChange']);
+    echo $subjectCode . " has been " . $_GET['typeChange'];
+} else if (isset($_POST['noChange'])) {
+    echo "Subject removal cancelled";
+}
 
-// To display subject list
+// After clicking on any of "Remove", "Deactivate", or "Activate" buttons -> First, user will be ask to confirm their choice. 
+function changeStatus($todo, $changeto)
+{
+    $subjectCode = $_SESSION['subjecttoChange'];
+    echo "Are you sure you want to " . $todo . " " . $subjectCode . " ?";
+    echo "<form action='subjects.php?typeChange=$changeto' method='POST'> 
+        <div class='submitResetItem submitContainer'>
+        <button type='submit' name='yesChange' value='yesChange'>Yes</button> 
+        <button type='submit' name='noChange' value='noChange'>No</button> 
+        </div>
+        </form>";
+
+}
+
+// To display subject listif (isset($_POST['prompt'])) {
 if ($user->get_type() == 'admin') { // For admin user -> display all subjects
     // To handle search for subjects
     if (isset($_POST['search'])) {
@@ -225,6 +262,13 @@ if ($user->get_type() == 'admin') { // For admin user -> display all subjects
         }
     }
 }
+function changeSubject($conn, $subjectCode, $changeto)
+{
+    $subjectCode = mysqli_real_escape_string($conn, $subjectCode); // sanitise to escape special characters before passing it to SQL query
+    $stmt = $conn->prepare("UPDATE `osers`.`subject` SET `type` = ? WHERE `code` = ? ");
+    $stmt->bind_param("ss", $changeto, $subjectCode);
+    $stmt->execute();
+}
 // Function to take search input value and search by key to prepare and execute SQL statement
 // will call displaySubject() function with the result of the query
 function displayBy($conn, $search_input, $search_by)
@@ -259,6 +303,25 @@ function displaySubject($result)
         // Create a Subject object and call a method in Subject class
         $subject = new Subject($code, $name, $lecturer, $venue, $type);
         $subject->display();
+        if (unserialize($_SESSION['user'])->get_type() == 'admin') {
+            echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'>
+    <button type='edit' name='edit' value='edit'>Edit</button> </div></form>";
+            if ($type == 'active') {
+                echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'><input type='hidden' name='subjectCode' value='$code'>
+    <button type='deactivate' name='deactivate' value='deactivate'>Deactivate</button> </div></form>";
+            }
+            if ($type == 'inactive') {
+                echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'><input type='hidden' name='subjectCode' value='$code'>
+    <button type='activate' name='activate' value='activate'>Activate</button> </div></form>";
+            }
+            if ($type != 'removed') {
+                echo "<form action='subjects.php' method='POST'><div class='submitResetItem submitContainer'><input type='hidden' name='subjectCode' value='$code'>
+        <button type='remove' name='remove' value='remove'>Remove</button>
+    </div></form>";
+            }
+
+
+        }
     }
 }
 echo "<form action='subjects.php' method='POST'>

@@ -8,3 +8,8 @@ Principles that I learned while working on this project:
 - Echo line by line for debugging: see where the token stops => ERROR!
 - Read the documentation properly! Careful with parameters
 - If there is no data, print_r () -> is the num of row 0?
+- if pressing a submit button, the variable will be gone byebye. solution: store in session variable, or, put it as a variable passed in the url and call it using GET request.
+- Use
+  ini_set('display_errors', 1);
+  error_reporting(E_ALL);
+  to display errors.
