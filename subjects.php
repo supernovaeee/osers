@@ -9,6 +9,8 @@
 </head>
 <?php
 session_start();
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 include 'class_Subject.php';
 include 'class_User.php';
 
@@ -110,43 +112,184 @@ if (isset($_POST['prompt'])) {
     </div>
 </form>";
 }
+
+if (isset($_POST['promptEdit'])) {
+    echo "<form action='subjects.php' method='POST'>
+    <div class='wrap'>
+        <label for='name'>Subject Name</label>
+        <input type='text' name='name' id='name' placeholder='Enter subject name (e.g. Web Server Programming)' required>
+    </div>
+    <div class='wrap'>
+        <label for='code'>Subject Code</label>
+        <input type='text' name='code' id='code' placeholder='Enter subject code (e.g. ISIT307)' required>
+    </div>
+    <div class='wrap'>
+        <label for='lecturer'>Lecturer Name</label>
+        <input type='text' name='lecturer' id='lecturer' placeholder='Enter the lecturer's name for this subject (e.g. John Doe)' required>
+    </div>
+    <div class='wrap'>
+    <label for='venue'>Lecture Venue</label>
+    <input type='text' name='venue' id='venue' placeholder='Enter the venue's name for this subject (e.g. A.3.03)' required>
+</div>
+    <div class='wrap'>
+        <label for='type'>Status</label>
+        <select name='type' id='type' required>
+            <option value='active'>Active</option>
+            <option value='inactive'>Inactive</option>
+        </select>
+    </div>
+    <div class='submitResetContainer'>
+        <div class='submitResetItem resetContainer'>
+            <button type='reset' name='reset' value='Reset'>Reset</button>
+        </div>
+        <div class='submitResetItem submitContainer'>
+            <button type='submit' name='editSubject' value='Finalize Edit'>Finalize Edit</button>
+        </div>
+    </div>
+</form>";
+}
 // When user add subject
+// if (isset($_POST['addSubject'])) {
+//     $code = $_POST['code'];
+//     $name = $_POST['name'];
+//     $lecturer = $_POST['lecturer'];
+//     $venue = $_POST['venue'];
+//     $type = $_POST['type'];
+//     $preQuery = "SELECT * from `osers`.`user` WHERE `name` = '$lecturer'";
+//     $preResult = mysqli_query($conn, $preQuery);
+//     // print_r($row);
+//     if (mysqli_num_rows($preResult) == 0) {
+//         echo "Lecturer is not in the database: " . $lecturer;
+//     } else {
+//         function testAdd($conn, $query)
+//         {
+//             try {
+//                 mysqli_query($conn, $query);
+//                 return 1;
+//             } catch (mysqli_sql_exception $e) {
+//                 echo $e;
+//                 return 0;
+//             }
+//         }
+//         $query = "INSERT INTO `subject`(`code`,`name`, `lecturer`, `venue`, `type`) VALUES 
+//         ('$code', '$name', '$lecturer', '$venue','$type')";
+//         $success = testAdd($conn, $query);
+//         $row = mysqli_fetch_assoc($preResult);
+//         $sID = $row['sID'];
+//         if ($success < 1) {
+//             echo "Fail to insert subject.";
+//         } else {
+//             $query = "INSERT INTO `user-subject`(`sID`,`code`) VALUES 
+//             ('$sID', '$code')";
+//             $success += testAdd($conn, $query);
+//             if ($success < 2) {
+//                 echo "Fail to insert subject";
+//             }
+//         }
+//     }
+// }
+// Below is modified code using prepared statement
 if (isset($_POST['addSubject'])) {
     $code = $_POST['code'];
     $name = $_POST['name'];
     $lecturer = $_POST['lecturer'];
     $venue = $_POST['venue'];
     $type = $_POST['type'];
-    $preQuery = "SELECT * from `osers`.`user` WHERE `name` = '$lecturer'";
-    $preResult = mysqli_query($conn, $preQuery);
-    // print_r($row);
+
+    // Prepare a statement to select the lecturer by name
+    $preQuery = "SELECT * FROM `osers`.`user` WHERE `name` = ?";
+    $preStmt = $conn->prepare($preQuery);
+    $preStmt->bind_param('s', $lecturer);
+    $preStmt->execute();
+    $preResult = $preStmt->get_result();
+
     if (mysqli_num_rows($preResult) == 0) {
         echo "Lecturer is not in the database: " . $lecturer;
     } else {
-        function testAdd($conn, $query)
-        {
-            try {
-                mysqli_query($conn, $query);
-                return 1;
-            } catch (mysqli_sql_exception $e) {
-                echo $e;
-                return 0;
-            }
-        }
-        $query = "INSERT INTO `subject`(`code`,`name`, `lecturer`, `venue`, `type`) VALUES 
-        ('$code', '$name', '$lecturer', '$venue','$type')";
-        $success = testAdd($conn, $query);
-        $row = mysqli_fetch_assoc($preResult);
+        $row = $preResult->fetch_assoc();
         $sID = $row['sID'];
-        if ($success < 1) {
-            echo "Fail to insert subject.";
-        } else {
-            $query = "INSERT INTO `user-subject`(`sID`,`code`) VALUES 
-            ('$sID', '$code')";
-            $success += testAdd($conn, $query);
-            if ($success < 2) {
-                echo "Fail to insert subject";
+
+        // Prepare a statement to insert the subject
+        $query = "INSERT INTO `subject`(`code`,`name`, `lecturer`, `venue`, `type`) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param('sssss', $code, $name, $lecturer, $venue, $type);
+
+        // Execute the statement to insert the subject
+        if ($stmt->execute()) {
+            $success = 1;
+
+            // Prepare a statement to insert the subject-user relation
+            $query = "INSERT INTO `user-subject`(`sID`,`code`) VALUES (?, ?)";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param('is', $sID, $code);
+
+            // Execute the statement to insert the subject-user relation
+            if ($stmt->execute()) {
+                $success += 1;
             }
+
+            if ($success < 2) {
+                echo "Failed to insert subject";
+            } else {
+                // Redirect to the page that shows the subjects
+                header("Location: subjects.php");
+                exit();
+            }
+        } else {
+            echo "Failed to insert subject: " . $conn->error;
+        }
+    }
+}
+
+// When user edit subject
+if (isset($_POST['editSubject'])) {
+    $code = $_POST['code'];
+    $name = $_POST['name'];
+    $lecturer = $_POST['lecturer'];
+    $venue = $_POST['venue'];
+    $type = $_POST['type'];
+    $subjectCode = $_SESSION['subjecttoChange'];
+    // Prepare a statement to select the lecturer by name
+    $preQuery = "SELECT * FROM `osers`.`user` WHERE `name` = ?";
+    $preStmt = $conn->prepare($preQuery);
+    $preStmt->bind_param('s', $lecturer);
+    $preStmt->execute();
+    $preResult = $preStmt->get_result();
+
+    if (mysqli_num_rows($preResult) == 0) {
+        echo "Lecturer is not in the database: " . $lecturer;
+    } else {
+        $row = $preResult->fetch_assoc();
+        $sID = $row['sID'];
+
+        // Prepare a statement to insert the subject
+        $query = "UPDATE `subject` SET `code` = ?, `name` = ?, `lecturer` = ?, `venue` = ?, `type` = ? WHERE `code` = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param('ssssss', $code, $name, $lecturer, $venue, $type, $subjectCode);
+
+        // Execute the statement to insert the subject
+        if ($stmt->execute()) {
+            $success = 1;
+
+            // Prepare a statement to insert the subject-user relation
+            $query = "UPDATE `user-subject` SET `sID` = ?, `code` = ? WHERE `code` = ?";
+            $stmt = $conn->prepare($query);
+            $stmt->bind_param('iss', $sID, $code, $subjectCode);
+
+            // Execute the statement to insert the subject-user relation
+            if ($stmt->execute()) {
+                $success += 1;
+            }
+
+            if ($success < 2) {
+                echo "Failed to insert subject";
+            } else {
+                // Redirect to the page that shows the subjects
+                header("Location: subjects.php");
+                exit();
+            }
+        } else {
+            echo "Failed to insert subject: " . $conn->error;
         }
     }
 }
@@ -305,18 +448,18 @@ function displaySubject($result)
         $subject->display();
         if (unserialize($_SESSION['user'])->get_type() == 'admin') {
             echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'>
-    <button type='edit' name='edit' value='edit'>Edit</button> </div></form>";
+    <button type='submit' name='promptEdit' value='promptEdit'>Edit</button> <input type='hidden' name='subjectCode' value='$code'></div></form>";
             if ($type == 'active') {
                 echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'><input type='hidden' name='subjectCode' value='$code'>
-    <button type='deactivate' name='deactivate' value='deactivate'>Deactivate</button> </div></form>";
+    <button type='submit' name='deactivate' value='deactivate'>Deactivate</button> </div></form>";
             }
             if ($type == 'inactive') {
                 echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'><input type='hidden' name='subjectCode' value='$code'>
-    <button type='activate' name='activate' value='activate'>Activate</button> </div></form>";
+    <button type='submit' name='activate' value='activate'>Activate</button> </div></form>";
             }
             if ($type != 'removed') {
                 echo "<form action='subjects.php' method='POST'><div class='submitResetItem submitContainer'><input type='hidden' name='subjectCode' value='$code'>
-        <button type='remove' name='remove' value='remove'>Remove</button>
+        <button type='submit' name='remove' value='remove'>Remove</button>
     </div></form>";
             }
 
