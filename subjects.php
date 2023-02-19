@@ -9,10 +9,11 @@
 </head>
 <?php
 session_start();
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+// error_reporting(E_ALL);
 include 'class_Subject.php';
 include 'class_User.php';
+mysqli_report(MYSQLI_REPORT_STRICT);
 
 // if (!isset($_SESSION['displayed-userSubject'])) {
 //     $_SESSION['displayed-userSubject'] = 0;
@@ -81,6 +82,7 @@ if ($user->get_type() == 'admin') {
 </div></form>";
 }
 
+// If user click "Add" button, it will prompt the display of an Add box 
 if (isset($_POST['prompt'])) {
     echo "<form action='subjects.php' method='POST'>
     <div class='wrap'>
@@ -117,6 +119,7 @@ if (isset($_POST['prompt'])) {
 </form>";
 }
 
+// If user click "Edit" button on any of the subject item, it will prompt the display of an Edit box
 if (isset($_POST['promptEdit'])) {
     echo "<form action='subjects.php' method='POST'>
     <div class='wrap'>
@@ -152,47 +155,8 @@ if (isset($_POST['promptEdit'])) {
     </div>
 </form>";
 }
-// When user add subject
-// if (isset($_POST['addSubject'])) {
-//     $code = $_POST['code'];
-//     $name = $_POST['name'];
-//     $lecturer = $_POST['lecturer'];
-//     $venue = $_POST['venue'];
-//     $type = $_POST['type'];
-//     $preQuery = "SELECT * from `osers`.`user` WHERE `name` = '$lecturer'";
-//     $preResult = mysqli_query($conn, $preQuery);
-//     // print_r($row);
-//     if (mysqli_num_rows($preResult) == 0) {
-//         echo "Lecturer is not in the database: " . $lecturer;
-//     } else {
-//         function testAdd($conn, $query)
-//         {
-//             try {
-//                 mysqli_query($conn, $query);
-//                 return 1;
-//             } catch (mysqli_sql_exception $e) {
-//                 echo $e;
-//                 return 0;
-//             }
-//         }
-//         $query = "INSERT INTO `subject`(`code`,`name`, `lecturer`, `venue`, `type`) VALUES 
-//         ('$code', '$name', '$lecturer', '$venue','$type')";
-//         $success = testAdd($conn, $query);
-//         $row = mysqli_fetch_assoc($preResult);
-//         $sID = $row['sID'];
-//         if ($success < 1) {
-//             echo "Fail to insert subject.";
-//         } else {
-//             $query = "INSERT INTO `user-subject`(`sID`,`code`) VALUES 
-//             ('$sID', '$code')";
-//             $success += testAdd($conn, $query);
-//             if ($success < 2) {
-//                 echo "Fail to insert subject";
-//             }
-//         }
-//     }
-// }
-// Below is modified code using prepared statement
+// After user fill up the Add box and click Add Subject
+// To add subject (FOR ADMIN)
 if (isset($_POST['addSubject'])) {
     $code = $_POST['code'];
     $name = $_POST['name'];
@@ -245,7 +209,8 @@ if (isset($_POST['addSubject'])) {
     }
 }
 
-// When user edit subject
+// When user fill up Edit box and click on Edit Subject button
+// To edit subject (FOR ADMIN)
 if (isset($_POST['editSubject'])) {
     $code = $_POST['code'];
     $name = $_POST['name'];
@@ -302,6 +267,7 @@ if (isset($_POST['subjectCode'])) {
     $_SESSION['subjecttoChange'] = $_POST['subjectCode'];
 }
 // To change subject status (type) when user prompts: remove/deactivate,activate. Call changeStatus() function.
+// (FOR ADMIN)
 if (isset($_POST['remove'])) {
     changeStatus('remove', 'removed');
 }
@@ -320,7 +286,7 @@ if (isset($_POST['yesChange'])) {
     echo "Subject removal cancelled";
 }
 
-// After clicking on any of "Remove", "Deactivate", or "Activate" buttons -> First, user will be ask to confirm their choice. 
+// After clicking on any of "Remove", "Deactivate", or "Activate" buttons -> User will be ask to confirm their choice. 
 function changeStatus($todo, $changeto)
 {
     $subjectCode = $_SESSION['subjecttoChange'];
@@ -413,27 +379,24 @@ if ($user->get_type() != 'admin') {
     } else {
         while ($row = mysqli_fetch_assoc($result)) {
             $code = $row['code'];
-            displayBy($conn, $code, 'code');
-            echo "<form action='subjects.php' method='POST'> 
-            <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+            if (displayBy($conn, $code, 'code')) {
+                echo "<form action='subjects.php' method='POST'> 
+                <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+            }
+
         }
     }
 
 }
-// To display all subjects
+// To display all subjects (including subjects the user is not assigned to/not enrolled in)
+// If user search something
 if (isset($_POST['search'])) {
     $search_input = $_POST['search_input'];
     $search_by = $_POST['search_by'];
-    // echo "<h2> Active Subjects</h2>";
     if ($user->get_type() == 'admin') {
-        // echo "im here";
         adminDisplayBy($conn, $search_input, $search_by);
     } else {
         echo "<h2>Active Subjects</h2>";
-        // echo $search_by . $search_input;
-        // print_r($conn);
-        // echo "<form action='subjects.php' method='POST'> 
-        // <button type='submit' name='enroll' value='Enroll'>Enroll</button></form>";
     }
     if (displayBy($conn, $search_input, $search_by, isEnrolment: true) == false) {
         echo "<h4>No search result found.</h4>";
@@ -441,7 +404,7 @@ if (isset($_POST['search'])) {
     echo "<br><br>";
     echo "<form action='subjects.php' method='POST'> 
     <button type='submit' name='undoSearch' value='Undo Search'>Undo Search</button></form>";
-    // Will only be available for admin user inactive, removed buttons)
+    // Will only be available for admin user: inactive, removed buttons)
 } else if (isset($_POST['inactive'])) {
     echo "<h2> Inactive Subjects</h2>";
     adminDisplayBy($conn, 'inactive', 'type');
@@ -449,17 +412,41 @@ if (isset($_POST['search'])) {
     echo "<h2> Removed Subjects</h2>";
     adminDisplayBy($conn, 'removed', 'type');
 }
-// The default for both admin and non-admin users 
+// Default (not searching something)
 else {
     echo "<h2> Active Subjects</h2>";
+    if (isset($_POST['enroll'])) {
+        enrollSubject($conn, $user->get_sID(), $_SESSION['subjecttoChange']);
+    }
+
     if ($user->get_type() == 'admin') {
         adminDisplayBy($conn, 'active', 'type');
     } else if ($user->get_type() == 'student') {
-        displayBy($conn, 'active', 'type', isEnrolment: true);
+        displayBy($conn, 'active', 'type', isEnrolment: true); // Enable Enroll button for student by isEnrolment = true as a parameter for displayBy
     } else {
         displayBy($conn, 'active', 'type', isEnrolment: true);
     }
 }
+
+// Function to display enroll result message
+function enrollSubject($conn, $sID, $subject)
+{
+    // echo "you click enroll !";
+    $subject = mysqli_real_escape_string($conn, $subject); // sanitise to escape special characters before passing it to SQL query
+    $query = "INSERT INTO `user-subject`(`sID`,`code`) VALUES (?, ?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('is', $sID, $subject);
+    // var_dump(($stmt->execute()));
+    if ($stmt->execute()) {
+        echo "You are now enrolled in " . $subject . " Please refresh the page.";
+    } else {
+        echo "You are already enrolled in " . $subject;
+    }
+    echo "<br>";
+
+}
+
+// Function to change subject status (to inactive, removed, or back to active from inactive)
 function changeSubject($conn, $subjectCode, $changeto)
 {
     $subjectCode = mysqli_real_escape_string($conn, $subjectCode); // sanitise to escape special characters before passing it to SQL query
@@ -472,8 +459,6 @@ function changeSubject($conn, $subjectCode, $changeto)
 function displayBy($conn, $search_input, $search_by, bool $isEnrolment = false)
 {
     $activeString = 'active';
-    // echo "im here at displayby";
-    // var_dump($isEnrolment);
 
     if ($search_by == 'code') {
         $stmt = $conn->prepare("SELECT * from `osers`.`subject` WHERE `code` = ? AND `type` = ?");
@@ -516,7 +501,7 @@ function adminDisplayBy($conn, $search_input, $search_by)
     $result = $stmt->get_result();
 
     displaySubject($result);
-    // if($user->get_type)
+
 }
 
 // Function to display the result of the SQL query in displayBy()
@@ -557,12 +542,17 @@ function displaySubject($result, bool $isEnrolment = false)
     </div></form>";
             }
         } else if ($isEnrolment && (unserialize($_SESSION['user'])->get_type() == 'student')) {
-            echo "<form action='subjects.php' method='POST'> 
+            echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
             <button type='submit' name='enroll' value='Enroll'>Enroll</button></form>";
         }
     }
     return $foundResult;
 }
+
+// Function to enrol in a subject (FOR STUDENT USER)
+
+
+
 echo "<form action='subjects.php' method='POST'>
         <div class='wrap'>
             <p class='reg-text'> <span><a href='index.php'>Log Out</a></span></p>
