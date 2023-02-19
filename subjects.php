@@ -48,18 +48,6 @@ if ($user->get_type() == 'student') {
 echo "<br>Phone No.: " . $user->get_phone();
 echo "<br>Email: " . $user->get_email();
 echo "<br><br>";
-
-// To display options to filter subjects based on subject status: active, inactive, removed (ONLY FOR ADMIN USER)
-if ($user->get_type() == 'admin') {
-    echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'>
-    <button type='prompt' name='prompt' value='Prompt'>Add Subject</button><br><br>
-    <span>Display subjects:</span><br><br>
-    <button type='active' name='active' value='active'>Active</button>
-    <button type='inactive' name='inactive' value='inactive'>Inactive</button>
-    <button type='removed' name='removed' value='removed'>Removed</button>
-</div></form>";
-}
-
 // Search box feature
 echo "<form action='subjects.php' method='post'>
 <br>
@@ -76,6 +64,16 @@ echo "<form action='subjects.php' method='post'>
 <br><br>
 <input type='submit' name='search' value='Search'>
 </form>";
+// To display options to filter subjects based on subject status: active, inactive, removed (ONLY FOR ADMIN USER)
+if ($user->get_type() == 'admin') {
+    echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'>
+    <button type='prompt' name='prompt' value='Prompt'>Add Subject</button><br><br>
+    <span>Display subjects:</span><br><br>
+    <button type='active' name='active' value='active'>Active</button>
+    <button type='inactive' name='inactive' value='inactive'>Inactive</button>
+    <button type='removed' name='removed' value='removed'>Removed</button>
+</div></form>";
+}
 
 if (isset($_POST['prompt'])) {
     echo "<form action='subjects.php' method='POST'>
@@ -330,27 +328,8 @@ function changeStatus($todo, $changeto)
 
 }
 
-// To display subject listif (isset($_POST['prompt'])) {
-if ($user->get_type() == 'admin') { // For admin user -> display all subjects
-    // To handle search for subjects
-    if (isset($_POST['search'])) {
-        $search_input = $_POST['search_input'];
-        $search_by = $_POST['search_by'];
-        echo "<h4>Your search result..</h4>";
-        displayBy($conn, $search_input, $search_by);
-        // echo "displayBy runs successfully";
-    } else if (isset($_POST['inactive'])) {
-        echo "<h2> Inactive Subjects</h2>";
-        displayBy($conn, 'inactive', 'type');
-    } else if (isset($_POST['removed'])) {
-        echo "<h2> Removed Subjects</h2>";
-        displayBy($conn, 'removed', 'type');
-    } else {
-        echo "<h2> Active Subjects</h2>";
-        displayBy($conn, 'active', 'type');
-    }
-
-} else {
+// To display subject list the user is assigned to (for non-admin)
+if ($user->get_type() != 'admin') {
     $sID = $user->get_sID(); // For non-admin user -> display the subjects they are enrolled in / assigned to
     $stmt = $conn->prepare("SELECT * from `osers`.`user-subject` WHERE `sID` = ? ");
     $stmt->bind_param("s", $sID);
@@ -362,7 +341,6 @@ if ($user->get_type() == 'admin') { // For admin user -> display all subjects
         $search_input = $_POST['search_input'];
         $search_by = $_POST['search_by'];
         echo "<h4>Your search result..</h4>";
-
         // Fetch the data for the user's subject list first, to prevent subjects not associated with the users from displaying. 
         // Make a verification by comparing search input with the value field from the fetched data => only if the two are the same, call the displayBy function to display the subject list
         while ($row = mysqli_fetch_assoc($result)) {
@@ -396,14 +374,34 @@ if ($user->get_type() == 'admin') { // For admin user -> display all subjects
                     break;
             }
         }
-        echo "<form action='subjects.php' method='POST'> 
-        <button type='submit' name='undoSearch' value='Undo Search'>Undo Search</button></form>";
+        // echo "<form action='subjects.php' method='POST'> 
+        // <button type='submit' name='undoSearch' value='Undo Search'>Undo Search</button></form>";
     } else {
         while ($row = mysqli_fetch_assoc($result)) {
             $code = $row['code'];
             displayBy($conn, $code, 'code');
         }
     }
+}
+// To display all subjects
+if (isset($_POST['search'])) {
+    $search_input = $_POST['search_input'];
+    $search_by = $_POST['search_by'];
+    displayBy($conn, $search_input, $search_by);
+    if ($_SESSION['displayed'] == 0) {
+        echo "<h4>No search result found.</h4>";
+    }
+    echo "<form action='subjects.php' method='POST'> 
+    <button type='submit' name='undoSearch' value='Undo Search'>Undo Search</button></form>";
+} else if (isset($_POST['inactive'])) {
+    echo "<h2> Inactive Subjects</h2>";
+    displayBy($conn, 'inactive', 'type');
+} else if (isset($_POST['removed'])) {
+    echo "<h2> Removed Subjects</h2>";
+    displayBy($conn, 'removed', 'type');
+} else {
+    echo "<h2> Active Subjects</h2>";
+    displayBy($conn, 'active', 'type');
 }
 function changeSubject($conn, $subjectCode, $changeto)
 {
@@ -437,7 +435,10 @@ function displayBy($conn, $search_input, $search_by)
 // Function to display the result of the SQL query in displayBy()
 function displaySubject($result)
 {
+    $_SESSION['displayed'] = 0;
+
     while ($row = mysqli_fetch_assoc($result)) {
+        $_SESSION['displayed'] = 1; // to store whether or not there is a data returned. if not, we want to have a variable that can be used later to display a message "No search result found"
         $code = $row['code'];
         $name = $row['name'];
         $lecturer = $row['lecturer'];
