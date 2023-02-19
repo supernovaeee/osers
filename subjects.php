@@ -311,6 +311,10 @@ if ($user->get_type() != 'admin') {
         echo "<h4>Your search result..</h4>";
     }
     echo "<h2> Your Subjects</h2>";
+    if (isset($_POST['withdraw'])) {
+        // echo "you press withdraw";
+        withdrawSubject($conn, $user->get_sID(), $_SESSION['subjecttoChange']);
+    }
     // To handle search for subjects 
     if (isset($_POST['search'])) {
         $search_input = $_POST['search_input'];
@@ -329,7 +333,7 @@ if ($user->get_type() != 'admin') {
                     if ($search_input == $code) {
                         displayBy($conn, $code, 'code');
                         // echo $_SESSION['displayed-userSubject'];
-                        echo "<form action='subjects.php' method='POST'> 
+                        echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
                         <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
                     }
                     break;
@@ -340,7 +344,7 @@ if ($user->get_type() != 'admin') {
                     $stmt2->execute();
                     $result2 = $stmt2->get_result();
                     if (displaySubject($result2)) {
-                        echo "<form action='subjects.php' method='POST'> 
+                        echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
                         <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
                     }
 
@@ -352,7 +356,7 @@ if ($user->get_type() != 'admin') {
                     $stmt2->execute();
                     $result2 = $stmt2->get_result();
                     if (displaySubject($result2)) {
-                        echo "<form action='subjects.php' method='POST'> 
+                        echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
                         <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
                     }
                     break;
@@ -363,7 +367,7 @@ if ($user->get_type() != 'admin') {
                     $stmt2->execute();
                     $result2 = $stmt2->get_result();
                     if (displaySubject($result2)) {
-                        echo "<form action='subjects.php' method='POST'> 
+                        echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
                         <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
                     }
 
@@ -380,7 +384,7 @@ if ($user->get_type() != 'admin') {
         while ($row = mysqli_fetch_assoc($result)) {
             $code = $row['code'];
             if (displayBy($conn, $code, 'code')) {
-                echo "<form action='subjects.php' method='POST'> 
+                echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
                 <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
             }
 
@@ -397,6 +401,9 @@ if (isset($_POST['search'])) {
         adminDisplayBy($conn, $search_input, $search_by);
     } else {
         echo "<h2>Active Subjects</h2>";
+        // if (isset($_POST['enroll'])) {
+        //     enrollSubject($conn, $user->get_sID(), $_SESSION['subjecttoChange']);
+        // }
     }
     if (displayBy($conn, $search_input, $search_by, isEnrolment: true) == false) {
         echo "<h4>No search result found.</h4>";
@@ -443,9 +450,22 @@ function enrollSubject($conn, $sID, $subject)
         echo "You are already enrolled in " . $subject;
     }
     echo "<br>";
-
 }
 
+// Function to display enroll result message
+function withdrawSubject($conn, $sID, $subject)
+{
+    // echo "im here at wS";
+    $subject = mysqli_real_escape_string($conn, $subject); // sanitise to escape special characters before passing it to SQL query
+    $query = "DELETE FROM `user-subject` WHERE `sID` = ? AND `code` = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('is', $sID, $subject);
+    // var_dump(($stmt->execute()));
+    $stmt->execute();
+    echo "You have withdrawn from " . $subject . " Please refresh the page.";
+    echo "<br>";
+
+}
 // Function to change subject status (to inactive, removed, or back to active from inactive)
 function changeSubject($conn, $subjectCode, $changeto)
 {
