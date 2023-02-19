@@ -350,7 +350,8 @@ if ($user->get_type() != 'admin') {
         $search_input = $_POST['search_input'];
         $search_by = $_POST['search_by'];
         $_SESSION['displayed-userSubject'] = 0;
-
+        // var_dump($result);
+        // var_dump(mysqli_fetch_all($result));
         // Fetch the data for the user's subject list first, to prevent subjects not associated with the users from displaying. 
         // Make a verification by comparing search input with the value field from the fetched data => only if the two are the same, call the displayBy function to display the subject list
         while ($row = mysqli_fetch_assoc($result)) {
@@ -362,7 +363,8 @@ if ($user->get_type() != 'admin') {
                     if ($search_input == $code) {
                         displayBy($conn, $code, 'code');
                         // echo $_SESSION['displayed-userSubject'];
-
+                        echo "<form action='subjects.php' method='POST'> 
+                        <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
                     }
                     break;
                 case "name":
@@ -371,7 +373,11 @@ if ($user->get_type() != 'admin') {
                     $stmt2->bind_param("ss", $code, $search_input);
                     $stmt2->execute();
                     $result2 = $stmt2->get_result();
-                    displaySubject($result2);
+                    if (displaySubject($result2)) {
+                        echo "<form action='subjects.php' method='POST'> 
+                        <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+                    }
+
                     break;
                 case "lecturer":
                     // $_SESSION['displayed-userSubject'] = 0;
@@ -379,7 +385,10 @@ if ($user->get_type() != 'admin') {
                     $stmt2->bind_param("ss", $code, $search_input);
                     $stmt2->execute();
                     $result2 = $stmt2->get_result();
-                    displaySubject($result2);
+                    if (displaySubject($result2)) {
+                        echo "<form action='subjects.php' method='POST'> 
+                        <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+                    }
                     break;
                 default:
                     // $_SESSION['displayed-userSubject'] = 0;
@@ -387,7 +396,11 @@ if ($user->get_type() != 'admin') {
                     $stmt2->bind_param("ss", $code, $search_input);
                     $stmt2->execute();
                     $result2 = $stmt2->get_result();
-                    displaySubject($result2);
+                    if (displaySubject($result2)) {
+                        echo "<form action='subjects.php' method='POST'> 
+                        <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+                    }
+
                     break;
             }
         }
@@ -401,6 +414,8 @@ if ($user->get_type() != 'admin') {
         while ($row = mysqli_fetch_assoc($result)) {
             $code = $row['code'];
             displayBy($conn, $code, 'code');
+            echo "<form action='subjects.php' method='POST'> 
+            <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
         }
     }
 
@@ -415,22 +430,35 @@ if (isset($_POST['search'])) {
         adminDisplayBy($conn, $search_input, $search_by);
     } else {
         echo "<h2>Active Subjects</h2>";
-        displayBy($conn, $search_input, $search_by);
+        // echo $search_by . $search_input;
+        // print_r($conn);
+        // echo "<form action='subjects.php' method='POST'> 
+        // <button type='submit' name='enroll' value='Enroll'>Enroll</button></form>";
     }
-    if ($_SESSION['displayed'] == 0) {
+    if (displayBy($conn, $search_input, $search_by, isEnrolment: true) == false) {
         echo "<h4>No search result found.</h4>";
     }
+    echo "<br><br>";
     echo "<form action='subjects.php' method='POST'> 
     <button type='submit' name='undoSearch' value='Undo Search'>Undo Search</button></form>";
+    // Will only be available for admin user inactive, removed buttons)
 } else if (isset($_POST['inactive'])) {
     echo "<h2> Inactive Subjects</h2>";
     adminDisplayBy($conn, 'inactive', 'type');
 } else if (isset($_POST['removed'])) {
     echo "<h2> Removed Subjects</h2>";
     adminDisplayBy($conn, 'removed', 'type');
-} else {
+}
+// The default for both admin and non-admin users 
+else {
     echo "<h2> Active Subjects</h2>";
-    adminDisplayBy($conn, 'active', 'type');
+    if ($user->get_type() == 'admin') {
+        adminDisplayBy($conn, 'active', 'type');
+    } else if ($user->get_type() == 'student') {
+        displayBy($conn, 'active', 'type', isEnrolment: true);
+    } else {
+        displayBy($conn, 'active', 'type', isEnrolment: true);
+    }
 }
 function changeSubject($conn, $subjectCode, $changeto)
 {
@@ -441,23 +469,33 @@ function changeSubject($conn, $subjectCode, $changeto)
 }
 // Function to take search input value and search by key to prepare and execute SQL statement
 // will call displaySubject() function with the result of the query
-function displayBy($conn, $search_input, $search_by)
+function displayBy($conn, $search_input, $search_by, bool $isEnrolment = false)
 {
     $activeString = 'active';
+    // echo "im here at displayby";
+    // var_dump($isEnrolment);
+
     if ($search_by == 'code') {
         $stmt = $conn->prepare("SELECT * from `osers`.`subject` WHERE `code` = ? AND `type` = ?");
     } else if ($search_by == 'name') {
         $stmt = $conn->prepare("SELECT * from `osers`.`subject` WHERE `name` = ? AND `type` = ?");
     } else if ($search_by == 'lecturer') {
         $stmt = $conn->prepare("SELECT * from `osers`.`subject` WHERE `lecturer` = ? AND `type` = ?");
-    } else {
+    } else if ($search_by == 'venue') {
         $stmt = $conn->prepare("SELECT * from `osers`.`subject` WHERE `venue` = ? AND `type` = ?");
+    } else {
+        $stmt = $conn->prepare("SELECT * from `osers`.`subject` WHERE `type` = ?");
     }
-    $stmt->bind_param("ss", $search_input, $activeString);
+
+    if ($search_by == 'type') {
+        $stmt->bind_param("s", $activeString);
+    } else {
+        $stmt->bind_param("ss", $search_input, $activeString);
+    }
     $stmt->execute();
     $result = $stmt->get_result();
 
-    displaySubject($result);
+    return displaySubject($result, $isEnrolment);
 }
 
 function adminDisplayBy($conn, $search_input, $search_by)
@@ -478,18 +516,20 @@ function adminDisplayBy($conn, $search_input, $search_by)
     $result = $stmt->get_result();
 
     displaySubject($result);
+    // if($user->get_type)
 }
 
 // Function to display the result of the SQL query in displayBy()
-function displaySubject($result)
+function displaySubject($result, bool $isEnrolment = false)
 {
     // echo "im me";
     $_SESSION['displayed'] = 0;
-
-
+    $foundResult = false;
+    // var_dump($isEnrolment);
 
     while ($row = mysqli_fetch_assoc($result)) {
         $_SESSION['displayed'] = 1; // to store whether or not there is a data returned. if not, we want to have a variable that can be used later to display a message "No search result found"
+        $foundResult = true;
         $_SESSION['displayed-userSubject'] = 1;
         $code = $row['code'];
         $name = $row['name'];
@@ -516,10 +556,12 @@ function displaySubject($result)
         <button type='submit' name='remove' value='remove'>Remove</button>
     </div></form>";
             }
-
-
+        } else if ($isEnrolment && (unserialize($_SESSION['user'])->get_type() == 'student')) {
+            echo "<form action='subjects.php' method='POST'> 
+            <button type='submit' name='enroll' value='Enroll'>Enroll</button></form>";
         }
     }
+    return $foundResult;
 }
 echo "<form action='subjects.php' method='POST'>
         <div class='wrap'>
