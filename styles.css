@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Gloock&display=swap');
+:root{
+    background-color: #034377;
+    font-family: 'Gloock', serif;
+    max-width: 100vw;
+    min-height: 100vh;
+    margin: 0 auto;
+}
+body{
+    color: white;
+    margin: 0px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.titleContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+}
+h1{
+    margin-top: 24px;
+    margin-left: 24px;
+    margin-bottom: 0;
+    color: white;
+    height: 10vh;
+    line-height: 120px;
+}
+.pageContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    height: 90vh;
+    width: 100vw;
+    margin-top: 0;
+
+}
+.column{
+    /* border: 5px solid black; */
+    width: 40vw;
+    height: 40vh;
+    text-align: center;
+    margin-bottom:0;
+}
+
+.head > .title{
+    color: #034377;
+    text-align: center;
+    font-size: 30px;
+    margin: 0;
+}
+
+.head > .logo{
+    width: 100%;
+    height: 70%;
+    border-radius: 15px;
+}
+form{
+    text-align: center;
+}
+.column{
+    /* border: 5px solid black; */
+    background-color: rgb(249, 249, 249);
+    border-radius: 5px;
+    font-weight: bold;
+    /* /* padding: 20px; */
+    margin: 10px;
+    width: 40vw;
+    height: 70%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+}
+.loginBox{
+    border-top: 3px solid grey;
+}
+.inputContainer{
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.inputContainer > input{
+    margin: 5px;
+    display: flex;
+
+}
+.submitResetContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.submitResetItem{
+    display: flex;
+    margin: 10px;
+
+}
+form button{
+    border: transparent;
+    background-color: #034377;
+    border-radius: 5px;
+    font-weight: bold;
+    padding: 10px;
+    margin: 10px;
+    width: 90%;
+    color: white;
+}
+.addDisplayContainer button{
+    width: 20%;
+    background-color: grey;
+
+}
+
+.displaySubjectContainer button{
+    width: 20%;
+    color: #034377;
+    background-color: white;
+
+}
+.greetings{
+    /* border:5px solid black; */
+    text-align: left;
+    margin-left: 40px;
+    color: white;
+    padding: 2vh;
+}
+.searchBox{
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 2px solid black;
+    padding: 10px;
+    width: 30vw;
+
+}
+.searchByContainer{
+    display:flex;
+
+}
+.searchInputContainer{
+    display:flex;
+
+}
+.searchButton > button
+{
+    color: #034377;
+    background-color: white;
+}
+form button{
+    background-color: grey;
+
+}

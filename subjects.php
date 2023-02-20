@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subjects</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <?php
 session_start();
@@ -15,12 +16,6 @@ include 'class_Subject.php';
 include 'class_User.php';
 mysqli_report(MYSQLI_REPORT_STRICT);
 
-// if (!isset($_SESSION['displayed-userSubject'])) {
-//     $_SESSION['displayed-userSubject'] = 0;
-// }
-// if (!isset($_SESSION['displayed'])) {
-//     $_SESSION['displayed'] = 0;
-// }
 // Initialise and declare variables for MySQL connection
 $servername = "localhost";
 $username = "root";
@@ -28,57 +23,93 @@ $password = "root";
 $dbname = "osers";
 
 // Create connection
-// try {
-//     $conn = new mysqli($servername, $username, $password, $dbname);
-// } catch (mysqli_sql_exception $e) {
-//     die("Connection failed:" . mysqli_connect_errno() . "=" . mysqli_connect_error());
-// }
-
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     exit('Error connecting to database'); //Should be a message a typical user could understand in production
 }
-// require_once("server.php");
 $user = unserialize($_SESSION['user']);
 
 // Greeting and user information
-echo "Hi, ";
-echo $user->get_name();
-echo "<br>";
+echo "<div class='greetings'>Hi, " . $user->get_name() . "<br><br>";
 if ($user->get_type() == 'student') {
     echo "You are a " . $user->get_type();
-    echo "<br>Student ID: " . $user->get_sID();
+    echo "<br><br>Student ID: " . $user->get_sID();
 } else {
     echo "You are an " . $user->get_type();
-    echo "<br>Staff ID: " . $user->get_sID();
+    echo "<br><br>Staff ID: " . $user->get_sID();
 }
 echo "<br>Phone No.: " . $user->get_phone();
 echo "<br>Email: " . $user->get_email();
-echo "<br><br>";
+echo "<br><br></div>";
 // Search box feature
-echo "<form action='subjects.php' method='post'>
-<br>
-<label for='search_by'>Search by:</label>
-<select id='search_by' name='search_by'>
-    <option value='code'>Subject Code</option>
-    <option value='name'>Subject Name</option>
-    <option value='lecturer'>Lecturer</option>
-    <option value='venue'>Venue</option>
-</select>
-<br>
-<label for='search_input'>Search Input:</label>
-<input type='text' id='search_input' name='search_input'>
-<br><br>
-<input type='submit' name='search' value='Search'>
-</form>";
+echo "
+<div class = 'searchBox'>
+    <form action='subjects.php' method='post'>
+    <br>
+    <div class='searchByContainer'>
+        <label for='search_by'>Search by:</label>
+        <select id='search_by' name='search_by'>
+            <option value='code'>Subject Code</option>
+            <option value='name'>Subject Name</option>
+            <option value='lecturer'>Lecturer</option>
+            <option value='venue'>Venue</option>
+        </select>
+    </div>
+    <br>
+    <div class='searchInputContainer'>
+        <label for='search_input'>Search Input:</label>
+        <input type='text' id='search_input' name='search_input'>
+        <br><br>
+    </div>
+    <div class='searchButton'>
+        <button type='submit' name='search' value='search'>Search</button>
+    </div>
+
+    </form>
+    <form action='subjects.php' method='post'>
+    
+    <h2>Advanced Search</h2>
+    <p>Use ; (semicolon) between multiple search terms</p>
+    <div class='searchByContainer'>
+        <label for='subject1'>Subject Code(s):</label>
+        <input type='text' id='subject1' name='subject1'>
+        <br><br>
+    </div>
+    <div class='searchByContainer'>
+        <label for='name1'>Subject Name(s):</label>
+        <input type='text' id='name1' name='name1'>
+        <br><br>
+    </div>
+    <div class='searchByContainer'>
+        <label for='lecturer1'>Lecturer(s):</label>
+        <input type='text' id='lecturer1' name='lecturer1'>
+        <br><br>
+    </div>
+    <div class='searchByContainer'>
+        <label for='venue1'>Venue(s):</label>
+        <input type='text' id='venue1' name='venue1'>
+        <br><br>
+    </div>
+    <div class='searchByContainer'>
+        <label for='status1'>Status(es):</label>
+        <input type='text' id='status1' name='status1'>
+        <br><br>
+    </div>
+    <div class='searchButton'>
+        <button type='submit' name='search' value='advanced'>Search Advanced</button>
+    </div>
+
+    </form>
+
+</div>";
 // To display options to filter subjects based on subject status: active, inactive, removed (ONLY FOR ADMIN USER)
 if ($user->get_type() == 'admin') {
-    echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'>
-    <button type='prompt' name='prompt' value='Prompt'>Add Subject</button><br><br>
-    <span>Display subjects:</span><br><br>
+    echo "<form action='subjects.php' method='POST'> <div class='addDisplayContainer'>
+    <div class='addSubjectContainer'><button type='prompt' name='prompt' value='Prompt'>Add Subject</button></div>
+    <div class='displaySubjectContainer'><span>Display subjects:</span><br><br>
     <button type='active' name='active' value='active'>Active</button>
     <button type='inactive' name='inactive' value='inactive'>Inactive</button>
-    <button type='removed' name='removed' value='removed'>Removed</button>
+    <button type='removed' name='removed' value='removed'>Removed</button></div>
 </div></form>";
 }
 
@@ -155,6 +186,7 @@ if (isset($_POST['promptEdit'])) {
     </div>
 </form>";
 }
+
 // After user fill up the Add box and click Add Subject
 // To add subject (FOR ADMIN)
 if (isset($_POST['addSubject'])) {
@@ -300,6 +332,140 @@ function changeStatus($todo, $changeto)
 
 }
 
+// <div class='searchByContainer'>
+//     <label for='subject1'>Subject Code(s):</label>
+//     <input type='text' id='subject1' name='subject1'>
+//     <br><br>
+// </div>
+// <div class='searchByContainer'>
+//     <label for='name1'>Subject Name(s):</label>
+//     <input type='text' id='name1' name='name1'>
+//     <br><br>
+// </div>
+// <div class='searchByContainer'>
+//     <label for='lecturer1'>Lecturer(s):</label>
+//     <input type='text' id='lecturer1' name='lecturer1'>
+//     <br><br>
+// </div>
+// <div class='searchByContainer'>
+//     <label for='venue1'>Venue(s):</label>
+//     <input type='text' id='venue1' name='venue1'>
+//     <br><br>
+// </div>
+// <div class='searchByContainer'>
+//     <label for='status1'>Status(es):</label>
+//     <input type='text' id='status1' name='status1'>
+//     <br><br>
+// </div>
+
+// function checkAdvancedSearchQuery($conn, $stmt)
+// {
+//     if (isset($_POST['search']) && $_POST['search'] == 'advanced')
+// getAdvancedSearchQuery($conn, $stmt);
+// }
+
+function getAdvancedSearchQuery($conn, $personal = false)
+{
+    global $user;
+    $subjectColumn = "sub.`code`";
+    $nameColumn = "sub.`name`";
+    $lecturerColumn = "u.name";
+    $venueColumn = "sub.`venue`";
+    $typeColumn = "sub.`type`";
+
+
+    function unionTerms($column, $valueCount)
+    {
+        // echo "\ncolumnn is " . $column;
+        $str = "( ";
+        for ($i = 0; $i < $valueCount; $i++) {
+            $str .= $column . " = ? OR ";
+        }
+        // echo "\nfirst stringly" . $str;
+        $str = substr($str, 0, strlen($str) - 3); // remove last OR
+        $str .= ")";
+        // echo "\n second stringly" . $str;
+        return $str;
+    }
+
+    $sentence = "SELECT * from `osers`.`subject` sub WHERE ";
+
+    if (isset($_POST['lecturer1']) && $_POST['lecturer1'] != '') {
+        $sentence = "SELECT sub.*, u.name as lecturer_name FROM `osers`.`subject` sub 
+            JOIN `osers`.`user-subject` us ON sub.`code` = us.`code`
+            JOIN `osers`.`user` u ON u.`sID` = us.`sID`
+            WHERE u.`type` = 'educator' AND ";
+
+        // if ($personal)
+
+    }
+
+    $searchArray = array();
+    $haveInput = false;
+
+    if (isset($_POST['subject1']) && $_POST['subject1'] != '') {
+        $haveInput = true;
+        $code_arr = explode(';', $_POST['subject1'], 10); // max 10 search terms per type
+        $sentence .= unionTerms($subjectColumn, count($code_arr)) . " AND ";
+        array_push($searchArray, ...$code_arr);
+    }
+
+    if (isset($_POST['name1']) && $_POST['name1'] != '') {
+        $haveInput = true;
+        $name_arr = explode(';', $_POST['name1'], 10);
+        $sentence .= unionTerms($nameColumn, count($name_arr)) . " AND ";
+        array_push($searchArray, ...$name_arr);
+    }
+
+    if (isset($_POST['lecturer1']) && $_POST['lecturer1'] != '') { // lecturer is special case.
+        $haveInput = true;
+        $lecturer_arr = explode(';', $_POST['lecturer1'], 10);
+        $sentence .= unionTerms($lecturerColumn, count($lecturer_arr)) . " AND ";
+        array_push($searchArray, ...$lecturer_arr);
+        ;
+    }
+
+    if (isset($_POST['venue1']) && $_POST['venue1'] != '') {
+        $haveInput = true;
+        $venue_arr = explode(';', $_POST['venue1'], 10);
+        $sentence .= unionTerms($venueColumn, count($venue_arr)) . " AND ";
+        array_push($searchArray, ...$venue_arr);
+    }
+
+    if (isset($_POST['status1']) && $_POST['status1'] != '') {
+        $haveInput = true;
+        $status_arr = explode(';', $_POST['status1'], 10);
+        $sentence .= unionTerms($typeColumn, count($status_arr)) . " AND ";
+        array_push($searchArray, ...$status_arr);
+    }
+
+    if (!$haveInput)
+        return null;
+    $sentence = substr($sentence, 0, strlen($sentence) - 4); // remove final AND
+
+    if ($personal) {
+        $old_sentence = $sentence;
+        $sID = $user->get_sID();
+        $new_sentence = "SELECT * FROM `user-subject` us2
+                RIGHT OUTER JOIN (" . $old_sentence . ") res1
+                ON us2.`code` = res1.`code`
+                WHERE us2.`sID` = $sID";
+        // echo $sentence;
+    }
+
+    function multiplyTypes($type, $num)
+    {
+        if ($num == 1)
+            return $type;
+        return $type . multiplyTypes($type, $num - 1);
+    }
+
+    // echo $sentence;
+    $stmt = $conn->prepare($sentence);
+    $stmt->bind_param(multiplyTypes("s", count($searchArray)), ...$searchArray);
+    return $stmt;
+}
+
 // To display subject list the user is assigned to (for non-admin)
 if ($user->get_type() != 'admin') {
     $sID = $user->get_sID(); // For non-admin user -> display the subjects they are enrolled in / assigned to
@@ -319,7 +485,7 @@ if ($user->get_type() != 'admin') {
         notTeach($conn, $user->get_sID(), $_SESSION['subjecttoChange']);
     }
     // To handle search for subjects 
-    if (isset($_POST['search'])) {
+    if (isset($_POST['search']) && $_POST['search'] == 'search') {
         $search_input = $_POST['search_input'];
         $search_by = $_POST['search_by'];
         $_SESSION['displayed-userSubject'] = 0;
@@ -429,6 +595,36 @@ if ($user->get_type() != 'admin') {
         }
         // echo "<form action='subjects.php' method='POST'> 
         // <button type='submit' name='undoSearch' value='Undo Search'>Undo Search</button></form>";
+    } else if (isset($_POST['search']) && $_POST['search'] == 'advanced') {
+        $stmt = getAdvancedSearchQuery($conn, personal: true);
+        if ($stmt == null)
+            echo "No search terms were entered into advanced search box!";
+        else {
+            function executeForDisplay($stmt, $isEnrolment = false, $isTeaching = false)
+            {
+                global $conn;
+                $result = executeStmtDisplay($stmt);
+                // var_dump($result);
+                return displaySubject($conn, $result, $isEnrolment, $isTeaching);
+            }
+
+            if ($user->get_type() == 'admin') {
+                // adminDisplayBy($conn, $search_input, $search_by);
+                if (executeForDisplay($stmt) == false) {
+                    echo "<h4>No search result found.</h4>";
+                }
+            } else if ($user->get_type() == 'student') {
+                echo "<h2>Active Subjects</h2>";
+                if (executeForDisplay($stmt, isEnrolment: true) == false) {
+                    echo "<h4>No search result found.</h4>";
+                }
+            } else {
+                echo "<h2>Active Subjects</h2>";
+                if (executeForDisplay($stmt, isTeaching: true) == false) {
+                    echo "<h4>No search result found.</h4>";
+                }
+            }
+        }
     } else {
         while ($row = mysqli_fetch_assoc($result)) {
             $code = $row['code'];
@@ -449,19 +645,52 @@ if ($user->get_type() != 'admin') {
 // To display all subjects (including subjects the user is not assigned to/not enrolled in)
 // If user search something
 if (isset($_POST['search'])) {
-    $search_input = $_POST['search_input'];
-    $search_by = $_POST['search_by'];
-    if ($user->get_type() == 'admin') {
-        adminDisplayBy($conn, $search_input, $search_by);
-    } else if ($user->get_type() == 'student') {
-        echo "<h2>Active Subjects</h2>";
-        if (displayBy($conn, $search_input, $search_by, isEnrolment: true) == false) {
-            echo "<h4>No search result found.</h4>";
+
+    if (isset($_POST['search']) && $_POST['search'] == 'advanced') {
+        $stmt = getAdvancedSearchQuery(($conn));
+        if ($stmt == null)
+            echo "No search terms were entered into advanced search box!";
+        else {
+            function executeForDisplay($stmt, $isEnrolment = false, $isTeaching = false)
+            {
+                global $conn;
+                $result = executeStmtDisplay($stmt);
+                // var_dump($result);
+                return displaySubject($conn, $result, $isEnrolment, $isTeaching);
+            }
+
+            if ($user->get_type() == 'admin') {
+                // adminDisplayBy($conn, $search_input, $search_by);
+                if (executeForDisplay($stmt) == false) {
+                    echo "<h4>No search result found.</h4>";
+                }
+            } else if ($user->get_type() == 'student') {
+                echo "<h2>Active Subjects</h2>";
+                if (executeForDisplay($stmt, isEnrolment: true) == false) {
+                    echo "<h4>No search result found.</h4>";
+                }
+            } else {
+                echo "<h2>Active Subjects</h2>";
+                if (executeForDisplay($stmt, isTeaching: true) == false) {
+                    echo "<h4>No search result found.</h4>";
+                }
+            }
         }
     } else {
-        echo "<h2>Active Subjects</h2>";
-        if (displayBy($conn, $search_input, $search_by, isTeaching: true) == false) {
-            echo "<h4>No search result found.</h4>";
+        $search_input = $_POST['search_input'];
+        $search_by = $_POST['search_by'];
+        if ($user->get_type() == 'admin') {
+            adminDisplayBy($conn, $search_input, $search_by);
+        } else if ($user->get_type() == 'student') {
+            echo "<h2>Active Subjects</h2>";
+            if (displayBy($conn, $search_input, $search_by, isEnrolment: true) == false) {
+                echo "<h4>No search result found.</h4>";
+            }
+        } else {
+            echo "<h2>Active Subjects</h2>";
+            if (displayBy($conn, $search_input, $search_by, isTeaching: true) == false) {
+                echo "<h4>No search result found.</h4>";
+            }
         }
     }
 
@@ -495,6 +724,21 @@ else {
 
     }
 }
+// VIEW STUDENTS 
+// if (isset($_POST['viewStudents'])) {
+// }
+
+// // Function to display students list
+// function displayStudents($conn, $subject)
+// {
+//     $
+//     $subject = mysqli_real_escape_string($conn, $subject); // sanitise to escape special characters before passing it to SQL query
+//     $stmt = $conn->prepare("SELECT * from `osers`.`user` WHERE `code` = ? AND `type` = ?");
+//     $stmt->bind_param('ss', $code, $subject);
+
+
+// }
+
 
 // Function to display enroll result message
 function enrollSubject($conn, $sID, $subject)
@@ -597,6 +841,22 @@ function displayBy($conn, $search_input, $search_by, bool $isEnrolment = false, 
     } else {
         $stmt->bind_param("ss", $search_input, $activeString);
     }
+
+    // $success = $stmt->execute();
+    // if (!$success) {
+    //     // If there was an error executing the statement, display the error message
+    //     echo "Error executing statement: " . $stmt->error;
+    //     return;
+    // }
+    // // $stmt->execute();
+    // $result = $stmt->get_result();
+    $result = executeStmtDisplay($stmt);
+
+    return displaySubject($conn, $result, $isEnrolment, $isTeaching);
+}
+
+function executeStmtDisplay($stmt)
+{
     $success = $stmt->execute();
     if (!$success) {
         // If there was an error executing the statement, display the error message
@@ -604,9 +864,7 @@ function displayBy($conn, $search_input, $search_by, bool $isEnrolment = false, 
         return;
     }
     // $stmt->execute();
-    $result = $stmt->get_result();
-
-    return displaySubject($conn, $result, $isEnrolment, $isTeaching);
+    return $stmt->get_result();
 }
 
 function adminDisplayBy($conn, $search_input, $search_by)
