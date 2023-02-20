@@ -29,21 +29,20 @@ INSERT INTO `user` (`sID`, `name`,`phone`, `email`, `type`, `password`) VALUES
 CREATE TABLE `subject` (
   `code` char(7) NOT NULL,
   `name` varchar(50) NOT NULL,
-  `lecturer` varchar(50) NOT NULL,
   `venue` varchar(50) NOT NULL,
   `type` varchar(16) NOT NULL,
 PRIMARY KEY(`code`)
 
 );
 
-INSERT INTO `subject`(`code`,`name`, `lecturer`, `venue`, `type`) VALUES 
-('ISIT307', 'Web Server Programming', 'Fitzgerald Ryan', 'B.1.05','active'),
-('ISIT332', 'Business Process Management', 'Jeremy Yang', 'A.4.03','active'),
-('CSIT121', 'Programming Fundamentals', 'Adam Cheng', 'A.5.03','active'),
-('CSIT127', 'Networks and Communications', 'Liam Carolus Hus', 'B.2.07','inactive'),
-('CSIT226', 'Human Computer Interaction', 'Adam Cheng', 'A.2.03','inactive'),
-('MATH223', 'Mathematics for Information Technology', 'Levina Lee', 'A.2.05','removed'),
-('ECON251', 'Industry and Trade in Asia', 'Clara Kayden', 'B.5.07','removed');
+INSERT INTO `subject`(`code`,`name`, `venue`, `type`) VALUES 
+('ISIT307', 'Web Server Programming', 'B.1.05','active'),
+('ISIT332', 'Business Process Manageme', 'A.4.03','active'),
+('CSIT121', 'Programming Fundamentals', 'A.5.03','active'),
+('CSIT127', 'Networks and Communications','B.2.07','inactive'),
+('CSIT226', 'Human Computer Interaction', 'A.2.03','inactive'),
+('MATH223', 'Mathematics for Information Technology', 'A.2.05','removed'),
+('ECON251', 'Industry and Trade in Asia', 'B.5.07','removed');
 
 CREATE TABLE `user-subject` (
 `sID` varchar(8) NOT NULL,

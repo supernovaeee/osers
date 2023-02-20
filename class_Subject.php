@@ -3,15 +3,13 @@ class Subject
 {
     public $code;
     public $name;
-    public $lecturer;
     public $venue;
     public $type;
 
-    function __construct($code, $name, $lecturer, $venue, $type)
+    function __construct($code, $name, $venue, $type)
     {
         $this->code = $code;
         $this->name = $name;
-        $this->lecturer = $lecturer;
         $this->venue = $venue;
         $this->type = $type;
     }
@@ -23,10 +21,6 @@ class Subject
     {
         return $this->name;
     }
-    function get_lecturer()
-    {
-        return $this->lecturer;
-    }
     function get_venue()
     {
         return $this->venue;
@@ -37,7 +31,7 @@ class Subject
     }
     public function display()
     {
-        echo '<br>' . $this->code . ' (' . $this->name . ')' . '<br>Lecturer: ' . $this->lecturer . '<br>Venue: ' . $this->venue . '<br>Status: ' . $this->type . '<br>';
+        echo '<br>' . $this->code . ' (' . $this->name . ')' . '<br>Venue: ' . $this->venue . '<br>Status: ' . $this->type . '<br>';
     }
 }
 ?>
