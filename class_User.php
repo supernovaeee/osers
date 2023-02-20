@@ -1,7 +1,6 @@
 <?php
 class User
 {
-    public $ID;
     public $sID;
     public $name;
     public $email;
@@ -17,10 +16,6 @@ class User
         $this->email = $email;
         $this->type = $type;
         $this->password = $password;
-    }
-    function get_ID()
-    {
-        return $this->ID;
     }
     function get_sID()
     {

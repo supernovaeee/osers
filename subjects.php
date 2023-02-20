@@ -189,7 +189,7 @@ if (isset($_POST['addSubject'])) {
             // Prepare a statement to insert the subject-user relation
             $query = "INSERT INTO `user-subject`(`sID`,`code`) VALUES (?, ?)";
             $stmt = $conn->prepare($query);
-            $stmt->bind_param('is', $sID, $code);
+            $stmt->bind_param('ss', $sID, $code);
 
             // Execute the statement to insert the subject-user relation
             if ($stmt->execute()) {
@@ -243,7 +243,7 @@ if (isset($_POST['editSubject'])) {
             // Prepare a statement to insert the subject-user relation
             $query = "UPDATE `user-subject` SET `sID` = ?, `code` = ? WHERE `code` = ?";
             $stmt = $conn->prepare($query);
-            $stmt->bind_param('iss', $sID, $code, $subjectCode);
+            $stmt->bind_param('sss', $sID, $code, $subjectCode);
 
             // Execute the statement to insert the subject-user relation
             if ($stmt->execute()) {
@@ -315,6 +315,9 @@ if ($user->get_type() != 'admin') {
         // echo "you press withdraw";
         withdrawSubject($conn, $user->get_sID(), $_SESSION['subjecttoChange']);
     }
+    if (isset($_POST['notTeach'])) {
+        notTeach($conn, $user->get_sID(), $_SESSION['subjecttoChange']);
+    }
     // To handle search for subjects 
     if (isset($_POST['search'])) {
         $search_input = $_POST['search_input'];
@@ -333,8 +336,13 @@ if ($user->get_type() != 'admin') {
                     if ($search_input == $code) {
                         displayBy($conn, $code, 'code');
                         // echo $_SESSION['displayed-userSubject'];
-                        echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+                        if ($user->get_type() == 'student') {
+                            echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
                         <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+                        } else {
+                            echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+                        <button type='submit' name='notTeach' value='notTeach'>Stop Teaching</button></form>";
+                        }
                     }
                     break;
                 case "name":
@@ -343,32 +351,70 @@ if ($user->get_type() != 'admin') {
                     $stmt2->bind_param("ss", $code, $search_input);
                     $stmt2->execute();
                     $result2 = $stmt2->get_result();
-                    if (displaySubject($result2)) {
-                        echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+                    if (displaySubject($conn, $result2)) {
+                        if ($user->get_type() == 'student') {
+                            echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
                         <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+                        } else {
+                            echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+                        <button type='submit' name='notTeach' value='notTeach'>Stop Teaching</button></form>";
+                        }
                     }
 
                     break;
                 case "lecturer":
-                    // $_SESSION['displayed-userSubject'] = 0;
-                    $stmt2 = $conn->prepare("SELECT * from `osers`.`subject` WHERE `code` = ? AND `lecturer` = ? ");
-                    $stmt2->bind_param("ss", $code, $search_input);
-                    $stmt2->execute();
-                    $result2 = $stmt2->get_result();
-                    if (displaySubject($result2)) {
-                        echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
-                        <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+                    $activeString = 'active';
+                    $username = $user->get_name();
+                    // create a prepared statement with placeholders
+                    $stmt = $conn->prepare("SELECT sub.*, u.name as lecturer_name FROM `osers`.`subject` sub 
+                        JOIN `osers`.`user-subject` us ON sub.`code` = us.`code`
+                        JOIN `osers`.`user` u ON u.`sID` = us.`sID`
+                        WHERE u.`name` = ? AND sub.`type` = ?");
+
+                    $stmt->bind_param("ss", $search_input, $activeString);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    // fetch the results
+                    while ($row = mysqli_fetch_assoc($result)) {
+                        $code = $row['code'];
+                        $subject_name = $row['name'];
+                        $venue = $row['venue'];
+                        $type = $row['type'];
+                        $lecturer_name = $row['lecturer_name'];
+
+                        // Check if the lecturer name is the same as the user name
+                        if ($lecturer_name == $username) {
+                            $_SESSION['displayed-userSubject'] = 1;
+                            // Create a Subject object and call a method in Subject class
+                            $subject = new Subject($code, $subject_name, $search_input, $venue, $type);
+                            $subject->display();
+                            retrieveLecturer($conn, $code);
+
+                            if ($user->get_type() == 'student') {
+                                echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+                                    <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+                            } else {
+                                echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+                                    <button type='submit' name='notTeach' value='notTeach'>Stop Teaching</button></form>";
+                            }
+                        }
                     }
                     break;
                 default:
                     // $_SESSION['displayed-userSubject'] = 0;
+
                     $stmt2 = $conn->prepare("SELECT * from `osers`.`subject` WHERE `code` = ? AND `venue` = ? ");
                     $stmt2->bind_param("ss", $code, $search_input);
                     $stmt2->execute();
                     $result2 = $stmt2->get_result();
-                    if (displaySubject($result2)) {
-                        echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+                    if (displaySubject($conn, $result2)) {
+                        if ($user->get_type() == 'student') {
+                            echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
                         <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+                        } else {
+                            echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+                        <button type='submit' name='notTeach' value='notTeach'>Stop Teaching</button></form>";
+                        }
                     }
 
                     break;
@@ -384,8 +430,13 @@ if ($user->get_type() != 'admin') {
         while ($row = mysqli_fetch_assoc($result)) {
             $code = $row['code'];
             if (displayBy($conn, $code, 'code')) {
-                echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+                if ($user->get_type() == 'student') {
+                    echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
                 <button type='submit' name='withdraw' value='Withdraw'>Withdraw</button></form>";
+                } else {
+                    echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+                <button type='submit' name='notTeach' value='notTeach'>Stop Teaching</button></form>";
+                }
             }
 
         }
@@ -399,15 +450,18 @@ if (isset($_POST['search'])) {
     $search_by = $_POST['search_by'];
     if ($user->get_type() == 'admin') {
         adminDisplayBy($conn, $search_input, $search_by);
+    } else if ($user->get_type() == 'student') {
+        echo "<h2>Active Subjects</h2>";
+        if (displayBy($conn, $search_input, $search_by, isEnrolment: true) == false) {
+            echo "<h4>No search result found.</h4>";
+        }
     } else {
         echo "<h2>Active Subjects</h2>";
-        // if (isset($_POST['enroll'])) {
-        //     enrollSubject($conn, $user->get_sID(), $_SESSION['subjecttoChange']);
-        // }
+        if (displayBy($conn, $search_input, $search_by, isTeaching: true) == false) {
+            echo "<h4>No search result found.</h4>";
+        }
     }
-    if (displayBy($conn, $search_input, $search_by, isEnrolment: true) == false) {
-        echo "<h4>No search result found.</h4>";
-    }
+
     echo "<br><br>";
     echo "<form action='subjects.php' method='POST'> 
     <button type='submit' name='undoSearch' value='Undo Search'>Undo Search</button></form>";
@@ -425,13 +479,17 @@ else {
     if (isset($_POST['enroll'])) {
         enrollSubject($conn, $user->get_sID(), $_SESSION['subjecttoChange']);
     }
+    if (isset($_POST['teach'])) {
+        teachSubject($conn, $user->get_sID(), $_SESSION['subjecttoChange']);
+    }
 
     if ($user->get_type() == 'admin') {
         adminDisplayBy($conn, 'active', 'type');
     } else if ($user->get_type() == 'student') {
         displayBy($conn, 'active', 'type', isEnrolment: true); // Enable Enroll button for student by isEnrolment = true as a parameter for displayBy
     } else {
-        displayBy($conn, 'active', 'type', isEnrolment: true);
+        displayBy($conn, 'active', 'type', isTeaching: true); // Enable Teach button for student by isTeaching = true as a parameter for displayBy
+
     }
 }
 
@@ -442,7 +500,7 @@ function enrollSubject($conn, $sID, $subject)
     $subject = mysqli_real_escape_string($conn, $subject); // sanitise to escape special characters before passing it to SQL query
     $query = "INSERT INTO `user-subject`(`sID`,`code`) VALUES (?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param('is', $sID, $subject);
+    $stmt->bind_param('ss', $sID, $subject);
     // var_dump(($stmt->execute()));
     if ($stmt->execute()) {
         echo "You are now enrolled in " . $subject . " Please refresh the page.";
@@ -452,17 +510,47 @@ function enrollSubject($conn, $sID, $subject)
     echo "<br>";
 }
 
-// Function to display enroll result message
+// Function to display withdraw result message
 function withdrawSubject($conn, $sID, $subject)
 {
     // echo "im here at wS";
     $subject = mysqli_real_escape_string($conn, $subject); // sanitise to escape special characters before passing it to SQL query
     $query = "DELETE FROM `user-subject` WHERE `sID` = ? AND `code` = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param('is', $sID, $subject);
+    $stmt->bind_param('ss', $sID, $subject);
     // var_dump(($stmt->execute()));
     $stmt->execute();
     echo "You have withdrawn from " . $subject . " Please refresh the page.";
+    echo "<br>";
+
+}
+// Function to display teach result message
+function teachSubject($conn, $sID, $subject)
+{
+    // echo "you click enroll !";
+    $subject = mysqli_real_escape_string($conn, $subject); // sanitise to escape special characters before passing it to SQL query
+    $query = "INSERT INTO `user-subject`(`sID`,`code`) VALUES (?, ?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('ss', $sID, $subject);
+    // var_dump(($stmt->execute()));
+    if ($stmt->execute()) {
+        echo "You are now a lecturer for " . $subject . " Please refresh the page.";
+    } else {
+        echo "You are already a lecturer for " . $subject;
+    }
+    echo "<br>";
+}
+// Function to display stop teaching result message
+function notTeach($conn, $sID, $subject)
+{
+    // echo "im here at wS";
+    $subject = mysqli_real_escape_string($conn, $subject); // sanitise to escape special characters before passing it to SQL query
+    $query = "DELETE FROM `user-subject` WHERE `sID` = ? AND `code` = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('ss', $sID, $subject);
+    // var_dump(($stmt->execute()));
+    $stmt->execute();
+    echo "You have stopped teaching " . $subject . " Please refresh the page.";
     echo "<br>";
 
 }
@@ -476,7 +564,7 @@ function changeSubject($conn, $subjectCode, $changeto)
 }
 // Function to take search input value and search by key to prepare and execute SQL statement
 // will call displaySubject() function with the result of the query
-function displayBy($conn, $search_input, $search_by, bool $isEnrolment = false)
+function displayBy($conn, $search_input, $search_by, bool $isEnrolment = false, bool $isTeaching = false)
 {
     $activeString = 'active';
 
@@ -500,7 +588,7 @@ function displayBy($conn, $search_input, $search_by, bool $isEnrolment = false)
     $stmt->execute();
     $result = $stmt->get_result();
 
-    return displaySubject($result, $isEnrolment);
+    return displaySubject($conn, $result, $isEnrolment, $isTeaching);
 }
 
 function adminDisplayBy($conn, $search_input, $search_by)
@@ -520,12 +608,12 @@ function adminDisplayBy($conn, $search_input, $search_by)
     $stmt->execute();
     $result = $stmt->get_result();
 
-    displaySubject($result);
+    displaySubject($conn, $result);
 
 }
 
 // Function to display the result of the SQL query in displayBy()
-function displaySubject($result, bool $isEnrolment = false)
+function displaySubject($conn, $result, bool $isEnrolment = false, bool $isTeaching = false)
 {
     // echo "im me";
     $_SESSION['displayed'] = 0;
@@ -544,6 +632,7 @@ function displaySubject($result, bool $isEnrolment = false)
         // Create a Subject object and call a method in Subject class
         $subject = new Subject($code, $name, $lecturer, $venue, $type);
         $subject->display();
+        retrieveLecturer($conn, $code);
         // echo $_SESSION['displayed-userSubject'];
         if (unserialize($_SESSION['user'])->get_type() == 'admin') {
             echo "<form action='subjects.php' method='POST'> <div class='submitResetItem submitContainer'>
@@ -564,12 +653,45 @@ function displaySubject($result, bool $isEnrolment = false)
         } else if ($isEnrolment && (unserialize($_SESSION['user'])->get_type() == 'student')) {
             echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
             <button type='submit' name='enroll' value='Enroll'>Enroll</button></form>";
+        } else if ($isTeaching && (unserialize($_SESSION['user'])->get_type() == 'educator')) {
+            echo "<form action='subjects.php' method='POST'> <input type='hidden' name='subjectCode' value='$code'>
+            <button type='submit' name='teach' value='Teach'>Apply to Teach</button></form>";
         }
     }
     return $foundResult;
 }
 
-// Function to enrol in a subject (FOR STUDENT USER)
+// Function to display Lecturer based on the user-subject database
+function retrieveLecturer($conn, $search_input)
+{
+    echo "Lecturer: <br>";
+    $stmt = $conn->prepare("SELECT * from `osers`.`user-subject` WHERE `code` = ? ");
+    $stmt->bind_param("s", $search_input);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = mysqli_fetch_assoc($result)) {
+        $sID = $row['sID'];
+        displayLecturer($conn, $sID);
+    }
+}
+
+function displayLecturer($conn, $sID)
+{
+    // echo "im here";
+    $educatorString = 'educator';
+    $stmt = $conn->prepare("SELECT * from `osers`.`user` WHERE `sID` = ? AND `type` = ? ");
+    // echo "finish stmt";
+
+    $stmt->bind_param("ss", $sID, $educatorString);
+    // echo "bind";
+    $stmt->execute();
+    // echo "execute";
+    $result = $stmt->get_result();
+    while ($row = mysqli_fetch_assoc($result)) {
+        $name = $row['name'];
+        echo " | " . $name . " | ";
+    }
+}
 
 
 
