@@ -8,16 +8,27 @@
 }
 body{
     color: white;
-    margin: 0px !important;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    margin-left:1vw;
 }
 .titleContainer{
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100vw;
+}
+.pageContainer{
+    
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.loginpageContainer{
+    display: flex;
+    margin: 10vh;
+
 }
 h1{
     margin-top: 24px;
@@ -26,22 +37,6 @@ h1{
     color: white;
     height: 10vh;
     line-height: 120px;
-}
-.pageContainer{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    height: 90vh;
-    width: 100vw;
-    margin-top: 0;
-
-}
-.column{
-    /* border: 5px solid black; */
-    width: 40vw;
-    height: 40vh;
-    text-align: center;
-    margin-bottom:0;
 }
 
 .head > .title{
@@ -60,18 +55,18 @@ form{
     text-align: center;
 }
 .column{
-    /* border: 5px solid black; */
     background-color: rgb(249, 249, 249);
     border-radius: 5px;
     font-weight: bold;
-    /* /* padding: 20px; */
+    padding: 20px;
     margin: 10px;
     width: 40vw;
-    height: 70%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-
+    justify-content: center; 
+}
+.wrap{
+    color: black;
 }
 .loginBox{
     border-top: 3px solid grey;
@@ -110,7 +105,6 @@ form button{
 .addDisplayContainer button{
     width: 20%;
     background-color: grey;
-
 }
 
 .displaySubjectContainer button{
@@ -119,8 +113,8 @@ form button{
     background-color: white;
 
 }
+
 .greetings{
-    /* border:5px solid black; */
     text-align: left;
     margin-left: 40px;
     color: white;
@@ -133,7 +127,7 @@ form button{
     border: 2px solid black;
     padding: 10px;
     width: 30vw;
-
+    margin-left: 5vw;
 }
 .searchByContainer{
     display:flex;
@@ -149,6 +143,15 @@ form button{
     background-color: white;
 }
 form button{
-    background-color: grey;
+    background-color: grey; 
+}
+
+.subjectItem{
+    text-align: center;
+    font-size: larger;
+} 
+.lecturerContainer{
+    text-align: center;
+    font-size: larger;
 
 }
