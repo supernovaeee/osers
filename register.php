@@ -20,9 +20,6 @@
         <div class="column">
             <div class="head">
                 <h1 class="title"> Register</h1><br>
-                <!-- <img class="logo"
-                    src="https://external-content.duckduckgo.com/iu/?u=http%3A%2F%2Fclipground.com%2Fimages%2Fmerlion-clipart-19.jpg&f=1&nofb=1&ipt=358ddcf59744dde1cfd38fab17b374b0239c171ec6b6f2b7d2f1e44be208aeab&ipo=images"
-                    alt="Merlion"> -->
             </div>
             <form action='register.php' method='POST'>
                 <div class="wrap">

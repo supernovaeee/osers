@@ -15,13 +15,13 @@ try {
 } catch (mysqli_sql_exception $e) {
     die("Connection failed:" . mysqli_connect_errno() . "=" . mysqli_connect_error());
 }
-// // Create database
-// $sql = "CREATE DATABASE IF NOT EXISTS osers";
-// try {
-//     mysqli_query($conn, $sql);
-// } catch (mysqli_sql_exception $e) {
-//     die("Error creating database: " . mysqli_error($conn));
-// } // do we need this??
+// Create database
+$sql = "CREATE DATABASE IF NOT EXISTS osers";
+try {
+    mysqli_query($conn, $sql);
+} catch (mysqli_sql_exception $e) {
+    die("Error creating database: " . mysqli_error($conn));
+}
 
 // LOG-IN
 if (isset($_POST['login'])) {
@@ -32,8 +32,6 @@ if (isset($_POST['login'])) {
     $query = "SELECT * from `osers`.`user` WHERE `email` = '$email'";
     $result = mysqli_query($conn, $query);
     $row = mysqli_fetch_array($result);
-    // print_r($row);
-
     // Return an error message if there is no account associated with data entered or if email is not registered
     if (mysqli_num_rows($result) == 0) {
         echo "Invalid login. Please register.";
@@ -49,9 +47,6 @@ if (isset($_POST['login'])) {
             $password = $row['password'];
             $user = new User($sID, $name, $phone, $email, $type, $password);
             $_SESSION['user'] = serialize($user);
-            // echo "You are logged in, ";
-            // echo $_SESSION['user']->get_name();
-            // echo "&nbsp;";
             header('location: subjects.php');
         } else {
             // if password is wrong
@@ -72,9 +67,7 @@ if (isset($_POST['submit'])) {
     // To check if the email is already registered in the system
     $query = "SELECT * from `osers`.`user` WHERE `email` = '$email' or `sID` = '$sID'";
     $result = mysqli_query($conn, $query);
-    // print_r($result);
     $row = mysqli_fetch_array($result);
-    // print_r($row);
 
     if (mysqli_num_rows($result) > 0) {
         // To check if email / student ID is already registered in the database. 
@@ -97,16 +90,12 @@ if (isset($_POST['submit'])) {
             $query = "INSERT INTO `user`(`sID`, `name`, `phone`, `email`, `type`, `password`) VALUES('$sID', '$name', '$phone', '$email', '$type', '$password')";
             try {
                 mysqli_query($conn, $query);
-                echo "You have registered.";
-                $GuestID = mysqli_insert_id($conn);
-                echo "Your ID is $GuestID <br />";
+                echo "You have registered. Please log in.";
                 echo "<p class='reg-text'><span><a href='index.php'>Click here to log in</a></span></p>";
-                // header('location: index.php');
             } catch (mysqli_sql_exception $e) {
                 echo "Unable to insert the the record" . $e;
             }
         }
     }
 }
-// session_destroy();
 ?>

@@ -31,7 +31,7 @@ class Subject
     }
     public function display()
     {
-        echo '<div class = "subjectItem">' . '<br>' . $this->code . ' (' . $this->name . ')' . '<br>Venue: ' . $this->venue . '<br>Status: ' . $this->type . '<br>Lecturer:<br> </div>';
+        return '<div class = "subjectItem">' . '<br>' . $this->code . ' (' . $this->name . ')' . '<br>Venue: ' . $this->venue . '<br>Status: ' . $this->type . '<br>Lecturer:<br> </div>';
     }
 }
 ?>

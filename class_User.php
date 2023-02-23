@@ -49,5 +49,9 @@ class User
     {
         return $this->password;
     }
+    public function display()
+    {
+        return '<div class = "subjectItem">' . '<br>Student ID:' . $this->sID . '<br>Student Name:' . $this->name . '<br>Phone number:' . $this->phone . '<br>Email: ' . $this->email . ' </div>';
+    }
 }
 ?>
